@@ -117,8 +117,11 @@ Plan: 16 to add, 0 to change, 0 to destroy.
 Azure Resources:
 
 ![VM Extention](VMextension.png)<br>
+<br>
 ![Storage Container with Script](storagecontainerwithscript.png)<br>
+<br>
 ![Script IIS ](scriptIISinsidecontainer.png)<br>
+<br>
 ![IIS webserver](IISwebserver.png)<br>
 
 ---
