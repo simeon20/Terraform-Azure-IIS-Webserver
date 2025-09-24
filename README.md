@@ -34,6 +34,7 @@ The deployment includes:
 ----
 [Sanitized Code](sanitizedcode.txt)<br>
 <br>
+---
 terraform plan -out main.tfplan
 ----
 
