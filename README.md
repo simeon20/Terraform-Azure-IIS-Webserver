@@ -1,10 +1,10 @@
 # Terraform-Azure-IIS-Webserver (Sanitized version of course)
 Provisioned an end-to-end Azure IaaS environment with Terraform, automating:<br>
 <br>
-*Networking (VNet, Subnets, NSG)<br>
-*Compute (Windows web Server VM + Managed Disk)<br>
-*Security (Key Vault)<br>
-*Scripting (Custom Script Extension)<br>
+- Networking (VNet, Subnets, NSG)<br>
+- Compute (Windows web Server VM + Managed Disk)<br>
+- Security (Key Vault)<br>
+- Scripting (Custom Script Extension)<br>
 <br>
 Configured a storage-backed Custom Script Extension to bootstrap IIS, delivering a fully functional web server at deployment.
 
