@@ -15,21 +15,21 @@ Engineered components: Networking · Security · Compute · Storage · Automatio
 
 The deployment includes:
 
-Virtual Network (app-network) – Secure network backbone for application components
+- Virtual Network (app-network) – Secure network backbone for application components
 
-Network Security Group (app-nsg) – Enforces traffic filtering and segmentation
+- Network Security Group (app-nsg) – Enforces traffic filtering and segmentation
 
-Key Vault (key-vaultXXXXX) – Centralized storage of secrets and credentials
+- Key Vault (key-vaultXXXXX) – Centralized storage of secrets and credentials
 
-Storage Account (terrastorageXXXXX) – Persistent storage for application and logs
+- Storage Account (terrastorageXXXXX) – Persistent storage for application and logs
 
-Virtual Machine (webvm1) with attached Data Disk (datadisk01 / webvm1_disk1_xxxxx) – Compute resources for hosting services
+- Virtual Machine (webvm1) with attached Data Disk (datadisk01 / webvm1_disk1_xxxxx) – Compute resources for hosting services
 
-Network Interface (networkinterface01) and Public IP (webip01) – External access to the VM
+- Network Interface (networkinterface01) and Public IP (webip01) – External access to the VM
 
-Network Watcher (NetworkWatcher_xxx) – Monitoring and diagnostics<br>
+- Network Watcher (NetworkWatcher_xxx) – Monitoring and diagnostics<br>
 
-Developed a containerized automation script hosted in an Azure Storage Account. When a Windows VM is deployed, the script automatically connects to the instance and installs/configures IIS, transforming it into a ready-to-use web server.
+- Developed a containerized automation script hosted in an Azure Storage Account. When a Windows VM is deployed, the script automatically connects to the instance and installs/configures IIS, transforming it into a ready-to-use web server.
 
 
 ---
