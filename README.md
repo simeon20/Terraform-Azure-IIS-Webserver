@@ -29,6 +29,8 @@ Network Interface (networkinterface01) and Public IP (webip01) – External acce
 
 Network Watcher (NetworkWatcher_xxx) – Monitoring and diagnostics<br>
 
+Developed a containerized automation script hosted in an Azure Storage Account. When a Windows VM is deployed, the script automatically connects to the instance and installs/configures IIS, transforming it into a ready-to-use web server.
+
 
 ---
 <br>
