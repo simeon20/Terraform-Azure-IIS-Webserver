@@ -90,6 +90,7 @@ Plan: 16 to add, 0 to change, 0 to destroy.
   name = "<DATA_DISK_NAME>"
   size_gb = 4 <br>
   
-  ![Apply Complte](applycomplete.png)<br>
+![Apply Complte](applycomplete.png)<br>
 
-Cut costs the easy way: use (Terraform destroy) to destroy resources before they destroy your wallet.
+Cut costs the easy way: use (Terraform destroy) to destroy resources before they destroy your wallet.<br>
+![Destroy Complte](destroycomplete.png)
