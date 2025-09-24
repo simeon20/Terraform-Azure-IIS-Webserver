@@ -10,7 +10,8 @@ Configured a storage-backed Custom Script Extension to bootstrap IIS, delivering
 
 Engineered components: Networking · Security · Compute · Storage · Automation · Application
 <br>
-
+---
+![All Resources](AzureResources.png)
 ----
 terraform plan -out main.tfplan
 ----
