@@ -32,7 +32,7 @@ The deployment includes:
 - Developed a containerized automation script hosted in an Azure Storage Account. When a Windows VM is deployed, the script automatically connects to the instance and installs/configures IIS, transforming it into a ready-to-use web server.
 
 ----
-[Sanitized Code](sanitizedcode.txt)<br>
+[Sanitized Terraform Code](sanitizedcode.txt)<br>
 <br>
 ---
 terraform plan -out main.tfplan
