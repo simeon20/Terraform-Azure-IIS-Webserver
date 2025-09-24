@@ -1,0 +1,263 @@
+########################
+# versions & providers #
+########################
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "4.45.1"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "3.6.3"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+  # subscription_id removed for sanitization; inherit from env or CLI:
+  # export ARM_SUBSCRIPTION_ID=xxxx or az account set --subscription ...
+}
+
+###########
+# locals  #
+###########
+locals {
+  resource_location = var.location
+
+  # Example inbound rules; keep tight in real envs.
+  networksecuritygroup_rules = [
+    { priority = 100, destination_port_range = "3389" }, # RDP (limit source in prod)
+    { priority = 200, destination_port_range = "80"   }  # HTTP
+  ]
+}
+
+################
+# input vars   #
+################
+variable "location" {
+  description = "Azure region"
+  type        = string
+  default     = "northeurope"
+}
+
+variable "admin_username" {
+  description = "Local admin username for the VM"
+  type        = string
+  default     = "appadmin"
+}
+
+variable "key_vault_id" {
+  description = "Resource ID of the Key Vault that stores the VM password"
+  type        = string
+}
+
+variable "vm_password_secret_name" {
+  description = "Secret name in Key Vault for the VM password"
+  type        = string
+}
+
+variable "appenvironment" {
+  description = "Environment-specific network & naming"
+  type = map(object({
+    virtualnetworkname        = string
+    virtualnetworkcidrblock   = string
+    subnets                   = map(object({ cidrblock = string }))
+    networkinterfacename      = string
+    publicipaddressname       = string
+    virtualmachinename        = string
+  }))
+}
+
+############################
+# secrets (sanitized path) #
+############################
+data "azurerm_key_vault_secret" "vm_password" {
+  name         = var.vm_password_secret_name
+  key_vault_id = var.key_vault_id
+}
+
+#######################
+# resource group/VNet #
+#######################
+resource "azurerm_resource_group" "appgrp" {
+  name     = "rg-app-sanitized"
+  location = local.resource_location
+  tags     = { environment = "sanitized" }
+}
+
+resource "azurerm_virtual_network" "app_network" {
+  name                = var.appenvironment.production.virtualnetworkname
+  location            = local.resource_location
+  resource_group_name = azurerm_resource_group.appgrp.name
+  address_space       = [var.appenvironment.production.virtualnetworkcidrblock]
+  tags                = { environment = "sanitized" }
+}
+
+resource "azurerm_subnet" "app_network_subnets" {
+  for_each             = var.appenvironment.production.subnets
+  name                 = each.key
+  resource_group_name  = azurerm_resource_group.appgrp.name
+  virtual_network_name = azurerm_virtual_network.app_network.name
+  address_prefixes     = [each.value.cidrblock]
+}
+
+#######################
+# public IP & NIC     #
+#######################
+resource "azurerm_public_ip" "webip" {
+  name                = var.appenvironment.production.publicipaddressname
+  resource_group_name = azurerm_resource_group.appgrp.name
+  location            = local.resource_location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  tags                = { environment = "sanitized" }
+}
+
+resource "azurerm_network_interface" "network_interfaces" {
+  name                = var.appenvironment.production.networkinterfacename
+  location            = local.resource_location
+  resource_group_name = azurerm_resource_group.appgrp.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.app_network_subnets["websubnet1"].id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.webip.id
+  }
+
+  tags = { environment = "sanitized" }
+}
+
+##########################
+# NSG & subnet associate #
+##########################
+resource "azurerm_network_security_group" "app_nsg" {
+  name                = "nsg-app-sanitized"
+  location            = local.resource_location
+  resource_group_name = azurerm_resource_group.appgrp.name
+
+  dynamic "security_rule" {
+    for_each = local.networksecuritygroup_rules
+    content {
+      name                       = "Allow-${security_rule.value.destination_port_range}"
+      priority                   = security_rule.value.priority
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_range          = "*"
+      destination_port_range     = security_rule.value.destination_port_range
+      # TIP: Lock this down to trusted ranges instead of "*"
+      source_address_prefix      = "*"
+      destination_address_prefix = "*"
+    }
+  }
+
+  tags = { environment = "sanitized" }
+}
+
+resource "azurerm_subnet_network_security_group_association" "subnet_appnsg" {
+  for_each                  = azurerm_subnet.app_network_subnets
+  subnet_id                 = each.value.id
+  network_security_group_id = azurerm_network_security_group.app_nsg.id
+}
+
+#################
+# Windows VM    #
+#################
+resource "azurerm_windows_virtual_machine" "vms" {
+  name                = var.appenvironment.production.virtualmachinename
+  resource_group_name = azurerm_resource_group.appgrp.name
+  location            = local.resource_location
+  size                = "Standard_B2s"
+
+  admin_username = var.admin_username
+  admin_password = data.azurerm_key_vault_secret.vm_password.value
+
+  network_interface_ids = [azurerm_network_interface.network_interfaces.id]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2022-Datacenter"
+    version   = "latest"
+  }
+
+  tags = { environment = "sanitized" }
+}
+
+##############################
+# Optional managed data disk #
+##############################
+resource "azurerm_managed_disk" "datadisk01" {
+  name                 = "md-data-01"
+  location             = local.resource_location
+  resource_group_name  = azurerm_resource_group.appgrp.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 4
+  tags                 = { environment = "sanitized" }
+}
+
+# (Attach via azurerm_virtual_machine_data_disk_attachment if you intend to use it)
+
+#########################
+# storage for scripts   #
+#########################
+# Make a globally-unique account name: <prefix><random>
+resource "random_string" "sa_suffix" {
+  length  = 6
+  upper   = false
+  special = false
+}
+
+resource "azurerm_storage_account" "terrastorage" {
+  name                     = "stsanitized${random_string.sa_suffix.result}"
+  resource_group_name      = azurerm_resource_group.appgrp.name
+  location                 = local.resource_location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "StorageV2"
+  allow_blob_public_access = true # required for unsigned CustomScript fileUris; prefer SAS in prod
+  tags                     = { environment = "sanitized" }
+}
+
+resource "azurerm_storage_container" "scripts" {
+  name                  = "scripts"
+  storage_account_id    = azurerm_storage_account.terrastorage.id
+  container_access_type = "blob"
+}
+
+resource "azurerm_storage_blob" "iis_config" {
+  name                   = "IIS.ps1"
+  storage_account_name   = azurerm_storage_account.terrastorage.name
+  storage_container_name = azurerm_storage_container.scripts.name
+  type                   = "Block"
+  source                 = "IIS.ps1"
+}
+
+############################
+# Custom Script Extension  #
+############################
+resource "azurerm_virtual_machine_extension" "vmextension" {
+  name                 = "vmextension"
+  virtual_machine_id   = azurerm_windows_virtual_machine.vms.id
+  publisher            = "Microsoft.Compute"
+  type                 = "CustomScriptExtension"
+  type_handler_version = "1.10"
+
+  settings = <<SETTINGS
+{
+  "fileUris": ["https://${azurerm_storage_account.terrastorage.name}.blob.core.windows.net/${azurerm_storage_container.scripts.name}/${azurerm_storage_blob.iis_config.name}"],
+  "commandToExecute": "powershell -ExecutionPolicy Bypass -File ${azurerm_storage_blob.iis_config.name}"
+}
+SETTINGS
+
+  tags = { environment = "sanitized" }
+}
