@@ -35,6 +35,7 @@ The deployment includes:
 ---
 <br>
 ----
+[BlockedRequestsOverTime](BlockedRequestsOverTime.png)<br>
 terraform plan -out main.tfplan
 ----
 
