@@ -35,7 +35,8 @@ The deployment includes:
 ---
 <br>
 ----
-[BlockedRequestsOverTime](BlockedRequestsOverTime.png)<br>
+<br>[Sanitized Code](sanitizedcode.txt)<br>
+<br>
 terraform plan -out main.tfplan
 ----
 
