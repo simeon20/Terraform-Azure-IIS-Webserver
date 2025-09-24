@@ -11,7 +11,27 @@ Configured a storage-backed Custom Script Extension to bootstrap IIS, delivering
 Engineered components: Networking · Security · Compute · Storage · Automation · Application
 <br>
 ---
-![All Resources](AzureResources.png)
+![All Resources](AzureResources.png)<br>
+
+The deployment includes:
+
+Virtual Network (app-network) – Secure network backbone for application components
+
+Network Security Group (app-nsg) – Enforces traffic filtering and segmentation
+
+Key Vault (key-vaultXXXXX) – Centralized storage of secrets and credentials
+
+Storage Account (terrastorageXXXXX) – Persistent storage for application and logs
+
+Virtual Machine (webvm1) with attached Data Disk (datadisk01 / webvm1_disk1_xxxxx) – Compute resources for hosting services
+
+Network Interface (networkinterface01) and Public IP (webip01) – External access to the VM
+
+Network Watcher (NetworkWatcher_xxx) – Monitoring and diagnostics<br>
+
+
+---
+<br>
 ----
 terraform plan -out main.tfplan
 ----
@@ -90,7 +110,7 @@ Plan: 16 to add, 0 to change, 0 to destroy.
   name = "<DATA_DISK_NAME>"
   size_gb = 4 <br>
   
-![Apply Complte](applycomplete.png)<br>
+- ![Apply Complte](applycomplete.png)<br>
 
 Cut costs the easy way: use (Terraform destroy) to destroy resources before they destroy your wallet.<br>
-![Destroy Complte](destroycomplete.png)
+- ![Destroy Complte](destroycomplete.png)
