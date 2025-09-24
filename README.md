@@ -113,6 +113,15 @@ Plan: 16 to add, 0 to change, 0 to destroy.
   size_gb = 4 <br>
   
 - ![Apply Complte](applycomplete.png)<br>
+---
+Azure Resources:
+
+![VM Extention](VMextension.png)<br>
+![Storage Container with Script](storagecontainerwithscript.png)<br>
+![Script IIS ](scriptIISinsidecontainer.png)<br>
+![IIS webserver](IISwebserver.png)<br>
+
+---
 
 Cut costs the easy way: use (Terraform destroy) to destroy resources before they destroy your wallet.<br>
-- ![Destroy Complte](destroycomplete.png)
+- ![Destroy Complte](destroycomplete.png)<br>
